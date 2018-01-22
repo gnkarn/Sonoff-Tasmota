@@ -58,6 +58,7 @@ The following devices are supported:
 
 ### gnk - this version was modified to include carrier HVAC IR code via mqtt on sonoff TH
 this version is not in sync with master ( dont know why ), will look into it .
+see wiki : https://github.com/gnkarn/Sonoff-Tasmota/wiki/Carrier-HVAC---IR
 
 ### License
 
