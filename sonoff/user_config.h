@@ -16,7 +16,7 @@
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
+// test gnk hvac
 #ifndef _USER_CONFIG_H_
 #define _USER_CONFIG_H_
 

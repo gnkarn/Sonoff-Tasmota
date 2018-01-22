@@ -56,7 +56,7 @@ The following devices are supported:
 - [Electrodragon IoT Relay Board](http://www.electrodragon.com/product/wifi-iot-relay-board-based-esp8266/)
 - [AI Light or any my9291 compatible RGBW LED](http://www.ebay.com/itm/172644855726)
 
-- gnk - this version was modified to include carrier HVAC IR code via mqtt on sonoff TH
+###- gnk - this version was modified to include carrier HVAC IR code via mqtt on sonoff TH
 ### License
 
 This program is licensed under GPL-3.0
