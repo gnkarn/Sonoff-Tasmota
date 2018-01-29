@@ -1,7 +1,8 @@
 ## Sonoff-Tasmota
 Provide ESP8266 based Sonoff by [iTead Studio](https://www.itead.cc/) and ElectroDragon IoT Relay with Serial, Web and MQTT control allowing 'Over the Air' or OTA firmware updates using Arduino IDE.
+## Modifications to add mpx protocol decode are concentrated on IR  library 
 
-Current version is **5.5.2** - See [sonoff/_releasenotes.ino](https://github.com/arendst/Sonoff-Tasmota/blob/master/sonoff/_releasenotes.ino) for change information.
+Tasmota/blob/master/sonoff/_releasenotes.ino) for change information.
 
 ### ATTENTION All versions
 
