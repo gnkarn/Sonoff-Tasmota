@@ -90,7 +90,7 @@ static void ICACHE_RAM_ATTR gpio_intr() {
 //            (Default: TIMEOUT_MS)
 //   save_buffer:  Use a second (save) buffer to decode from. (Def: false)
 // Returns:
-//   A IRrecv class object.
+//   An IRrecv class object.
 IRrecv::IRrecv(uint16_t recvpin, uint16_t bufsize, uint8_t timeout,
                bool save_buffer) {
   irparams.recvpin = recvpin;
@@ -121,6 +121,9 @@ IRrecv::IRrecv(uint16_t recvpin, uint16_t bufsize, uint8_t timeout,
   } else {
     irparams_save = NULL;
   }
+#if DECODE_HASH
+  unknown_threshold = UNKNOWN_THRESHOLD;
+#endif  // DECODE_HASH
 }
 
 // Class destructor
@@ -198,6 +201,13 @@ uint16_t IRrecv::getBufSize() {
   return irparams.bufsize;
 }
 
+#if DECODE_HASH
+// Set the minimum length we will consider for reporting UNKNOWN message types.
+void IRrecv::setUnknownThreshold(uint16_t length) {
+  unknown_threshold = length;
+}
+#endif  // DECODE_HASH
+
 // Decodes the received IR message.
 // If the interrupt state is saved, we will immediately resume waiting
 // for the next IR message to avoid missing messages.
@@ -258,6 +268,13 @@ bool IRrecv::decode(decode_results *results, irparams_t *save) {
   results->command = 0;
   results->repeat = false;
 
+#if DECODE_MPX
+      DPRINTLN("Attempting MPX decode");
+      // Try decodeMPX
+      if (decodeMPX(results,MPX_BITS, true))
+        return true;
+#endif
+
 #if DECODE_AIWA_RC_T501
   DPRINTLN("Attempting Aiwa RC T501 decode");
   // Try decodeAiwaRCT501() before decodeSanyoLC7461() & decodeNEC()
@@ -273,6 +290,15 @@ bool IRrecv::decode(decode_results *results, irparams_t *save) {
   // NEC protocol (42 vs 32 bits) so this one should be tried first to try to
   // reduce false detection as a NEC packet.
   if (decodeSanyoLC7461(results))
+    return true;
+#endif
+#if DECODE_CARRIER_AC
+  DPRINTLN("Attempting Carrier AC decode");
+  // Try decodeCarrierAC() before decodeNEC() because the protocols are
+  // similar in timings & structure, but the Carrier one is much longer than the
+  // NEC protocol (3x32 bits vs 1x32 bits) so this one should be tried first to
+  // try to reduce false detection as a NEC packet.
+  if (decodeCarrierAC(results))
     return true;
 #endif
 #if DECODE_NEC
@@ -305,11 +331,16 @@ bool IRrecv::decode(decode_results *results, irparams_t *save) {
   if (decodeRCMM(results))
     return true;
 #endif
+#if DECODE_FUJITSU_AC
+  // Fujitsu A/C needs to precede Panasonic and Denon as it has a short
+  // message which looks exactly the same as a Panasonic/Denon message.
+  DPRINTLN("Attempting Fujitsu A/C decode");
+  if (decodeFujitsuAC(results))
+    return true;
+#endif
 #if DECODE_DENON
   // Denon needs to precede Panasonic as it is a special case of Panasonic.
-#ifdef DEBUG
   DPRINTLN("Attempting Denon decode");
-#endif
   if (decodeDenon(results, DENON_48_BITS) ||
       decodeDenon(results, DENON_BITS) ||
       decodeDenon(results, DENON_LEGACY_BITS))
@@ -364,6 +395,31 @@ bool IRrecv::decode(decode_results *results, irparams_t *save) {
   if (decodeNikai(results))
     return true;
 #endif
+#if DECODE_KELVINATOR
+  DPRINTLN("Attempting Kelvinator decode");
+  if (decodeKelvinator(results))
+    return true;
+#endif
+#if DECODE_DAIKIN
+  DPRINTLN("Attempting Daikin decode");
+  if (decodeDaikin(results))
+    return true;
+#endif
+#if DECODE_TOSHIBA_AC
+  DPRINTLN("Attempting Toshiba AC decode");
+  if (decodeToshibaAC(results))
+    return true;
+#endif
+#if DECODE_MIDEA
+  DPRINTLN("Attempting Midea decode");
+  if (decodeMidea(results))
+    return true;
+#endif
+#if DECODE_MAGIQUEST
+  DPRINTLN("Attempting Magiquest decode");
+  if (decodeMagiQuest(results))
+    return true;
+#endif
 /* NOTE: Disabled due to poor quality.
 #if DECODE_SANYO
   // The Sanyo S866500B decoder is very poor quality & depricated.
@@ -380,18 +436,25 @@ bool IRrecv::decode(decode_results *results, irparams_t *save) {
   // This needs to be done after all other codes that use strict and some
   // other protocols that are NEC-like as well, as turning off strict may
   // cause this to match other valid protocols.
-  DPRINTLN("Attempting NEC (non-stict) decode");
+  DPRINTLN("Attempting NEC (non-strict) decode");
   if (decodeNEC(results, NEC_BITS, false)) {
     results->decode_type = NEC_LIKE;
     return true;
   }
 #endif
+#if DECODE_LASERTAG
+  DPRINTLN("Attempting Lasertag decode");
+  if (decodeLasertag(results))
+    return true;
+#endif
+#if DECODE_HASH
   // decodeHash returns a hash on any input.
   // Thus, it needs to be last in the list.
   // If you add any decodes, add them before this.
   if (decodeHash(results)) {
     return true;
   }
+#endif  // DECODE_HASH
   // Throw away and start over
   if (!resumed)  // Check if we have already resumed.
     resume();
@@ -403,11 +466,13 @@ bool IRrecv::decode(decode_results *results, irparams_t *save) {
 // Args:
 //   usecs:  Nr. of uSeconds.
 //   tolerance:  Percent as an integer. e.g. 10 is 10%
+//   delta:  A non-scaling amount to reduce usecs by.
 // Returns:
 //   Nr. of ticks.
-uint32_t IRrecv::ticksLow(uint32_t usecs, uint8_t tolerance) {
+uint32_t IRrecv::ticksLow(uint32_t usecs, uint8_t tolerance, uint16_t delta) {
   // max() used to ensure the result can't drop below 0 before the cast.
-  return((uint32_t) std::max((int32_t) (usecs * (1.0 - tolerance / 100.0)), 0));
+  return((uint32_t) std::max(
+      (int32_t) (usecs * (1.0 - tolerance / 100.0) - delta), 0));
 }
 
 // Calculate the upper bound of the nr. of ticks.
@@ -415,48 +480,52 @@ uint32_t IRrecv::ticksLow(uint32_t usecs, uint8_t tolerance) {
 // Args:
 //   usecs:  Nr. of uSeconds.
 //   tolerance:  Percent as an integer. e.g. 10 is 10%
+//   delta:  A non-scaling amount to increase usecs by.
 // Returns:
 //   Nr. of ticks.
-uint32_t IRrecv::ticksHigh(uint32_t usecs, uint8_t tolerance) {
-  return((uint32_t) (usecs * (1.0 + tolerance / 100.0)) + 1);
+uint32_t IRrecv::ticksHigh(uint32_t usecs, uint8_t tolerance, uint16_t delta) {
+  return((uint32_t) (usecs * (1.0 + tolerance / 100.0)) + 1 + delta);
 }
 
 // Check if we match a pulse(measured) with the desired within
-// +/-tolerance percent.
+// +/-tolerance percent and/or +/- a fixed delta range.
 //
 // Args:
 //   measured:  The recorded period of the signal pulse.
 //   desired:  The expected period (in useconds) we are matching against.
 //   tolerance:  A percentage expressed as an integer. e.g. 10 is 10%.
+//   delta:  A non-scaling (+/-) error margin (in useconds).
 //
 // Returns:
 //   Boolean: true if it matches, false if it doesn't.
 bool IRrecv::match(uint32_t measured, uint32_t desired,
-                   uint8_t tolerance) {
+                   uint8_t tolerance, uint16_t delta) {
   measured *= RAWTICK;  // Convert to uSecs.
   DPRINT("Matching: ");
-  DPRINT(ticksLow(desired, tolerance));
+  DPRINT(ticksLow(desired, tolerance, delta));
   DPRINT(" <= ");
   DPRINT(measured);
   DPRINT(" <= ");
-  DPRINTLN(ticksHigh(desired, tolerance));
-  return (measured >= ticksLow(desired, tolerance) &&
-          measured <= ticksHigh(desired, tolerance));
+  DPRINTLN(ticksHigh(desired, tolerance, delta));
+  return (measured >= ticksLow(desired, tolerance, delta) &&
+          measured <= ticksHigh(desired, tolerance, delta));
 }
 
 
 // Check if we match a pulse(measured) of at least desired within
-// +/-tolerance percent.
+// tolerance percent and/or a fixed delta margin.
 //
 // Args:
 //   measured:  The recorded period of the signal pulse.
 //   desired:  The expected period (in useconds) we are matching against.
 //   tolerance:  A percentage expressed as an integer. e.g. 10 is 10%.
+//   delta:  A non-scaling amount to reduce usecs by.
+
 //
 // Returns:
 //   Boolean: true if it matches, false if it doesn't.
 bool IRrecv::matchAtLeast(uint32_t measured, uint32_t desired,
-                          uint8_t tolerance) {
+                          uint8_t tolerance, uint16_t delta) {
   measured *= RAWTICK;  // Convert to uSecs.
   DPRINT("Matching ATLEAST ");
   DPRINT(measured);
@@ -465,17 +534,18 @@ bool IRrecv::matchAtLeast(uint32_t measured, uint32_t desired,
   DPRINT(". Matching: ");
   DPRINT(measured);
   DPRINT(" >= ");
-  DPRINT(ticksLow(std::min(desired, MS_TO_USEC(irparams.timeout)), tolerance));
+  DPRINT(ticksLow(std::min(desired, MS_TO_USEC(irparams.timeout)), tolerance,
+                  delta));
   DPRINT(" [min(");
-  DPRINT(ticksLow(desired, tolerance));
+  DPRINT(ticksLow(desired, tolerance, delta));
   DPRINT(", ");
-  DPRINT(ticksLow(MS_TO_USEC(irparams.timeout), tolerance));
+  DPRINT(ticksLow(MS_TO_USEC(irparams.timeout), tolerance, delta));
   DPRINTLN(")]");
   // We really should never get a value of 0, except as the last value
   // in the buffer. If that is the case, then assume infinity and return true.
   if (measured == 0) return true;
   return measured >= ticksLow(std::min(desired, MS_TO_USEC(irparams.timeout)),
-                              tolerance);
+                              tolerance, delta);
 }
 
 // Check if we match a mark signal(measured) with the desired within
@@ -550,13 +620,14 @@ int16_t IRrecv::compare(uint16_t oldval, uint16_t newval) {
     return 1;
 }
 
+#if DECODE_HASH
 /* Converts the raw code values into a 32-bit hash code.
  * Hopefully this code is unique for each button.
  * This isn't a "real" decoding, just an arbitrary value.
  */
 bool IRrecv::decodeHash(decode_results *results) {
-  // Require at least 6 samples to prevent triggering on noise
-  if (results->rawlen < 6)
+  // Require at least some samples to prevent triggering on noise
+  if (results->rawlen < unknown_threshold)
     return false;
   int32_t hash = FNV_BASIS_32;
   // 'rawlen - 2' to avoid the look ahead from going out of bounds.
@@ -575,6 +646,7 @@ bool IRrecv::decodeHash(decode_results *results) {
   results->decode_type = UNKNOWN;
   return true;
 }
+#endif  // DECODE_HASH
 
 // Match & decode the typical data section of an IR message.
 // The data value constructed as the Most Significant Bit first.
@@ -586,46 +658,34 @@ bool IRrecv::decodeHash(decode_results *results) {
 //   onespace:  Nr. of uSeconds in an expected space signal for a '1' bit.
 //   zeromark:  Nr. of uSeconds in an expected mark signal for a '0' bit.
 //   zerospace: Nr. of uSeconds in an expected space signal for a '0' bit.
+//   tolerance: Percentage error margin to allow.
 // Returns:
 //  A match_result_t structure containing the success (or not), the data value,
 //  and how many buffer entries were used.
-match_result_t IRrecv::matchData(volatile uint16_t *data_ptr, uint16_t nbits,
-                                 uint16_t onemark, uint32_t onespace,
-                                 uint16_t zeromark, uint32_t zerospace) {
+match_result_t IRrecv::matchData(volatile uint16_t *data_ptr,
+                                 const uint16_t nbits, const uint16_t onemark,
+                                 const uint32_t onespace,
+                                 const uint16_t zeromark,
+                                 const uint32_t zerospace,
+                                 const uint8_t tolerance) {
   match_result_t result;
-  result.success = false;
+  result.success = false;  // Fail by default.
   result.data = 0;
-  if (onemark == zeromark) {  // Is this space encoded data format?
-    for (result.used = 0;
-         result.used < nbits * 2;
-         result.used += 2, data_ptr++) {
-      if (!matchMark(*data_ptr, onemark))
-        return result;  // Fail
-      data_ptr++;
-      if (matchSpace(*data_ptr, onespace))
-        result.data = (result.data << 1) | 1;
-      else if (matchSpace(*data_ptr, zerospace))
-        result.data <<= 1;
-      else
-        return result;  // Fail
-    }
-    result.success = true;
-  } else if (onespace == zerospace) {  // Is this mark encoded data format?
-    for (result.used = 0;
-         result.used < nbits * 2;
-         result.used += 2, data_ptr++) {
-      if (matchMark(*data_ptr, onemark))
-        result.data = (result.data << 1) | 1;
-      else if (matchMark(*data_ptr, zeromark))
-        result.data <<= 1;
-      else
-        return result;  // Fail
-      data_ptr++;
-      if (!matchSpace(*data_ptr, onespace))
-        return result;  // Fail
-    }
-    result.success = true;
+  for (result.used = 0;
+       result.used < nbits * 2;
+       result.used += 2, data_ptr += 2) {
+    // Is the bit a '1'?
+    if (matchMark(*data_ptr, onemark, tolerance) &&
+        matchSpace(*(data_ptr + 1), onespace, tolerance))
+      result.data = (result.data << 1) | 1;
+    // or is the bit a '0'?
+    else if (matchMark(*data_ptr, zeromark, tolerance) &&
+             matchSpace(*(data_ptr + 1), zerospace, tolerance))
+      result.data <<= 1;
+    else
+      return result;  // It's neither, so fail.
   }
+  result.success = true;
   return result;
 }
 

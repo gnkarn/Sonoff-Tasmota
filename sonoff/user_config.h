@@ -35,7 +35,7 @@
 //#define MY_LANGUAGE            pl-PL           // Polish in Poland
 
 // -- Project -------------------------------------
-#define PROJECT                "sonoff"          // PROJECT is used as the default topic delimiter and OTA file name
+#define PROJECT                "MPX"          // PROJECT is used as the default topic delimiter and OTA file name
                                                  //   As an IDE restriction it needs to be the same as the main .ino file
 
 #define CFG_HOLDER             0x20161209        // [Reset 1] Change this value to load following default configuration parameters
@@ -167,7 +167,7 @@
 //#define USE_DS18x20                              // Optional for more than one DS18x20 sensors with id sort, single scan and read retry (+1.3k code)
 //#define USE_DS18x20_LEGACY                       // Optional for more than one DS18x20 sensors with dynamic scan using library OneWire (+1.5k code)
 
-#define USE_I2C                                  // I2C using library wire (+10k code, 0.2k mem) - Disable by //
+//#define USE_I2C                                  // I2C using library wire (+10k code, 0.2k mem) - Disable by //
   #define USE_SHT                                // Add I2C emulating code for SHT1X sensor
   #define USE_HTU                                // Add I2C code for HTU21/SI7013/SI7020/SI7021 sensor
   #define USE_BMP                                // Add I2C code for BMP/BME280 sensor
@@ -181,7 +181,7 @@
 //  #define USE_IR_HVAC                            // Support for HVAC system using IR (+2k code)
   #define USE_IR_RECEIVE                         // Support for IR receiver (+5.5k code)
 
-#define USE_WS2812                               // WS2812 Led string using library NeoPixelBus (+5k code, +1k mem) - Disable by //
+//#define USE_WS2812                               // WS2812 Led string using library NeoPixelBus (+5k code, +1k mem) - Disable by //
   #define USE_WS2812_CTYPE     1                 // WS2812 Color type (0 - RGB, 1 - GRB, 2 - RGBW, 3 - GRBW)
 //  #define USE_WS2812_DMA                         // DMA supports only GPIO03 (= Serial RXD) (+1k mem). When USE_WS2812_DMA is enabled expect Exceptions on Pow
 
