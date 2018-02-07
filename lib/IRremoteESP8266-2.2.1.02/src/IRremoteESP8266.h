@@ -212,7 +212,7 @@ enum decode_type_t {
  MAGIQUEST,
  LASERTAG,
  CARRIER_AC,
- MPX
+ MPX // 38
 };
 
 // Message lengths & required repeat values

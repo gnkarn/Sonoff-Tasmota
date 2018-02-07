@@ -26,7 +26,7 @@
 
 // Based on IRremoteESP8266.h enum decode_type_t
 const char kIrRemoteProtocols[] PROGMEM =
-  "UNKNOWN|RC5|RC6|NEC|SONY|PANASONIC|JVC|SAMSUNG|WHYNTER|AIWA_RC_T501|LG|SANYO|MITSUBISHI|DISH|SHARP";
+  "UNKNOWN|RC5|RC6|NEC|SONY|PANASONIC|JVC|SAMSUNG|WHYNTER|AIWA_RC_T501|LG|SANYO|MITSUBISHI|DISH|SHARP|COOLIX|DAIKIN|DENON|KELVINATOR|SHERWOOD|MITSUBISHI_AC|RCMM|SANYO_LC7461|RC5X|GREE|PRONTO|NEC_LIKE|ARGO|TROTEC|NIKAI|RAW|GLOBALCACHE|TOSHIBA_AC|FUJITSU_AC|MIDEA|MAGIQUEST|LASERTAG|CARRIER_AC|MPX";
 
 #ifdef USE_IR_HVAC
 
@@ -47,6 +47,8 @@ IRMitsubishiAC *mitsubir = NULL;
 const char kFanSpeedOptions[] = "A12345S";
 const char kHvacModeOptions[] = "HDCA";
 #endif
+
+
 
 /*********************************************************************************************\
  * IR Send
@@ -70,18 +72,72 @@ void IrSendInit(void)
 /*********************************************************************************************\
  * IR Receive
 \*********************************************************************************************/
-
+// // Display the human readable state of an A/C message if we can.
 #include <IRrecv.h>
+
+// void dumpACInfo(decode_results *results) {
+//   String description = "";
+// #if DECODE_DAIKIN
+//   if (results->decode_type == DAIKIN) {
+//     IRDaikinESP ac(0);
+//     ac.setRaw(results->state);
+//     description = ac.toString();
+//   }
+// #endif  // DECODE_DAIKIN
+// #if DECODE_FUJITSU_AC
+//   if (results->decode_type == FUJITSU_AC) {
+//     IRFujitsuAC ac(0);
+//     ac.setRaw(results->state, results->bits / 8);
+//     description = ac.toString();
+//   }
+// #endif  // DECODE_FUJITSU_AC
+// #if DECODE_KELVINATOR
+//   if (results->decode_type == KELVINATOR) {
+//     IRKelvinatorAC ac(0);
+//     ac.setRaw(results->state);
+//     description = ac.toString();
+//   }
+// #endif  // DECODE_KELVINATOR
+// #if DECODE_TOSHIBA_AC
+//   if (results->decode_type == TOSHIBA_AC) {
+//     IRToshibaAC ac(0);
+//     ac.setRaw(results->state);
+//     description = ac.toString();
+//   }
+// #endif  // DECODE_TOSHIBA_AC
+// #if DECODE_MIDEA
+//   if (results->decode_type == MIDEA) {
+//     IRMideaAC ac(0);
+//     ac.setRaw(results->value);  // Midea uses value instead of state.
+//     description = ac.toString();
+//   }
+// #endif  // DECODE_MIDEA
+//   // If we got a human-readable description of the message, display it.
+//   if (description != "")  Serial.println("Mesg Desc.: " + description);
+// } // end dumpACInfo
 
 #define IR_TIME_AVOID_DUPLICATE 500 // Milliseconds
 
-IRrecv *irrecv = NULL;
+//IRrecv *irrecv = NULL;
 unsigned long ir_lasttime = 0;
+IRrecv irrecv(RECV_PIN, CAPTURE_BUFFER_SIZE, TIMEOUT, true);// an IR led is at GPIO_IRRECV
 
 void IrReceiveInit(void)
 {
-  irrecv = new IRrecv(pin[GPIO_IRRECV]); // an IR led is at GPIO_IRRECV
-  irrecv->enableIRIn();                  // Start the receiver
+  //irrecv = new IRrecv(pin[GPIO_IRRECV]); // an IR led is at GPIO_IRRECV
+  //IRrecv irrecv(RECV_PIN, CAPTURE_BUFFER_SIZE, TIMEOUT, true);// an IR led is at GPIO_IRRECV
+  //irrecv->enableIRIn();                  // Start the receiver
+  irrecv.enableIRIn();                  // Start the receiver
+
+  // mi codigo
+  pinMode(LED, OUTPUT);   // LED pin as output.
+  digitalWrite(LED, LOW);
+  delay(500);  // Wait a bit for the serial connection to be establised.
+  digitalWrite(LED, HIGH);
+
+// Use turn on the save buffer feature for more complete capture coverage.
+  // IRrecv irrecv(RECV_PIN, CAPTURE_BUFFER_SIZE, TIMEOUT, true);
+  // irrecv.enableIRIn();  // Start the receiver
 
   //  AddLog_P(LOG_LEVEL_DEBUG, PSTR("IrReceive initialized"));
 }
@@ -92,8 +148,8 @@ void IrReceiveCheck()
   int8_t iridx = 0;
 
   decode_results results;
-
-  if (irrecv->decode(&results)) {
+  // if (irrecv->decode(&results)) {
+  if (irrecv.decode(&results)) {
 
     snprintf_P(log_data, sizeof(log_data), PSTR(D_LOG_IRR "RawLen %d, Bits %d, Value %08X, Decode %d"),
                results.rawlen, results.bits, results.value, results.decode_type);
@@ -109,14 +165,27 @@ void IrReceiveCheck()
       }
       snprintf_P(mqtt_data, sizeof(mqtt_data), PSTR("{\"" D_IRRECEIVED "\":{\"" D_IR_PROTOCOL "\":\"%s\",\"" D_IR_BITS "\":%d,\"" D_IR_DATA "\":\"%X\"}}"),
         GetTextIndexed(sirtype, sizeof(sirtype), iridx, kIrRemoteProtocols), results.bits, results.value);
+        // char* GetTextIndexed(char* destination, size_t destination_size, uint16_t index, const char* haystack)
       MqttPublishPrefixTopic_P(6, PSTR(D_IRRECEIVED));
 #ifdef USE_DOMOTICZ
       unsigned long value = results.value | (iridx << 28);  // [Protocol:4, Data:28]
       DomoticzSensor(DZ_COUNT, value);                      // Send data as Domoticz Counter value
 #endif                                                      // USE_DOMOTICZ
+
+#ifdef USE_HOME_ASSISTANT
+        // modificar
+      uint8_t zona = Mpx_loop(); // modificar en IRrecvMpx.ino
+
+      snprintf_P(mqtt_data, sizeof(mqtt_data), PSTR("{\"" D_IRRECEIVED "\":{\"" D_IR_PROTOCOL "\":\"%s\",\"" D_IR_BITS "\":%d,\"" D_IR_DATA "\":\"%X\"}}"),
+        GetTextIndexed(sirtype, sizeof(sirtype), iridx, kIrRemoteProtocols), 1, zona);
+        // char* GetTextIndexed(char* destination, size_t destination_size, uint16_t index, const char* haystack)
+      MqttPublishPrefixTopic_P(1, PSTR(D_IRRECEIVED));
+
+#endif  // USE_HOME_ASSISTANT
     }
 
-    irrecv->resume();
+    //irrecv->resume();
+    irrecv.resume();
   }
 }
 #endif // USE_IR_RECEIVE
@@ -384,5 +453,65 @@ boolean IrSendCommand(char *type, uint16_t index, char *dataBuf, uint16_t data_l
     serviced = false; // Unknown command
   }
   return serviced;
+}
+
+/*********************************************************************************************\
+ * MPX
+\*********************************************************************************************/
+// The repeating section of the code
+//
+uint8_t Mpx_loop() {
+  // Check if the IR code has been received.
+  uint8_t z = 0;
+  if (irrecv.decode(&results)) {
+    // Display a crude timestamp.
+    uint32_t now = millis();
+    Serial.printf("Timestamp : %06u.%03u\n", now / 1000, now % 1000);
+    if (results.overflow)
+      Serial.printf("WARNING: IR code is too big for buffer (>= %d). "
+                    "This result shouldn't be trusted until this is resolved. "
+                    "Edit & increase CAPTURE_BUFFER_SIZE.\n",
+                    CAPTURE_BUFFER_SIZE);
+    // Display the basic output of what we found.
+    Serial.print(resultToHumanReadableBasic(&results));
+    //dumpACInfo(&results);  // Display any extra A/C info if we have it.
+    yield();  // Feed the WDT as the text output can take a while to print.
+
+    // Display the library version the message was captured with.
+    Serial.print("Library   : v");
+    Serial.println(_IRREMOTEESP8266_VERSION_);
+    Serial.println();
+
+    // Output RAW timing info of the result.
+    Serial.println(resultToTimingInfo(&results));
+    yield();  // Feed the WDT (again)
+
+    // Output the results as source code
+    Serial.println(resultToSourceCode(&results));
+    Serial.println("");  // Blank line between entries
+    yield();  // Feed the WDT (again)
+
+    //serialPrintUint64(results.value, HEX) ; // decimal value para  verificar por zona en hexa
+    z = DetectAlarmZone(results.value);
+    currentLedMillis = millis();
+
+    // el led se activa con las zonas de movimiento
+    // y se mantiene en on un tiempo fijo por ledInterval
+    // *** transformar lo que sigue en funcion ***
+    if (z != 0) {
+      Serial.print("z "); Serial.println(z);
+      digitalWrite(LED,0); // turn on
+      previousLedMillis = currentLedMillis;
+      ledState = 1;
+    }
+    // if the LED is on and time expires turn it off
+    if (ledState == 1) {
+      if (currentLedMillis - previousLedMillis >= lediInterval) {
+      ledState = 0;
+      digitalWrite(LED,1); // turn off
+      }
+    }
+  }
+  return z; // loop end
 }
 #endif // USE_IR_REMOTE

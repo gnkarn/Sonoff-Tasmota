@@ -15,7 +15,8 @@
  *     - Decode from a copy of the data so we can start capturing faster thus
  *       reduce the likelihood of miscaptures.
  * Based on Ken Shirriff's IrsendDemo Version 0.1 July, 2009,
- * Modified by gnk for mpx alarm zones detection -
+ * Modified by gnk for mpx alarm zones detection feb2018-
+ *  added all ir codes on kIrRemoteProtocols[]
  */
 
 #ifndef UNIT_TEST
@@ -35,18 +36,20 @@
 // ==================== start of TUNEABLE PARAMETERS ====================
 // An IR detector/demodulator is connected to GPIO pin 14
 // e.g. D5 on a NodeMCU board.
-#define RECV_PIN D2  // gpio04
+#define RECV_PIN 4  //D2 gpio04
 
 // The Serial connection baud rate.
 // i.e. Status message will be sent to the PC at this baud rate.
 // Try to avoid slow speeds like 9600, as you will miss messages and
 // cause other problems. 115200 (or faster) is recommended.
 // NOTE: Make sure you set your Serial Monitor to the same speed.
-#define BAUD_RATE 115200
+// #define BAUD_RATE 115200
 
 // As this program is a special purpose capture/decoder, let us use a larger
 // than normal buffer so we can handle Air Conditioner remote codes.
 #define CAPTURE_BUFFER_SIZE 128
+
+decode_results results;  // Somewhere to store the results
 
 // TIMEOUT is the Nr. of milli-Seconds of no-more-data before we consider a
 // message ended.
@@ -98,55 +101,10 @@
 #define MIN_UNKNOWN_SIZE 12
 // ==================== end of TUNEABLE PARAMETERS ====================
 
-
-// Use turn on the save buffer feature for more complete capture coverage.
-IRrecv irrecv(RECV_PIN, CAPTURE_BUFFER_SIZE, TIMEOUT, true);
+//
 
 
-
-// Display the human readable state of an A/C message if we can.
-// void dumpACInfo(decode_results *results) {
-//   String description = "";
-// #if DECODE_DAIKIN
-//   if (results->decode_type == DAIKIN) {
-//     IRDaikinESP ac(0);
-//     ac.setRaw(results->state);
-//     description = ac.toString();
-//   }
-// #endif  // DECODE_DAIKIN
-// #if DECODE_FUJITSU_AC
-//   if (results->decode_type == FUJITSU_AC) {
-//     IRFujitsuAC ac(0);
-//     ac.setRaw(results->state, results->bits / 8);
-//     description = ac.toString();
-//   }
-// #endif  // DECODE_FUJITSU_AC
-// #if DECODE_KELVINATOR
-//   if (results->decode_type == KELVINATOR) {
-//     IRKelvinatorAC ac(0);
-//     ac.setRaw(results->state);
-//     description = ac.toString();
-//   }
-// #endif  // DECODE_KELVINATOR
-// #if DECODE_TOSHIBA_AC
-//   if (results->decode_type == TOSHIBA_AC) {
-//     IRToshibaAC ac(0);
-//     ac.setRaw(results->state);
-//     description = ac.toString();
-//   }
-// #endif  // DECODE_TOSHIBA_AC
-// #if DECODE_MIDEA
-//   if (results->decode_type == MIDEA) {
-//     IRMideaAC ac(0);
-//     ac.setRaw(results->value);  // Midea uses value instead of state.
-//     description = ac.toString();
-//   }
-// #endif  // DECODE_MIDEA
-//   // If we got a human-readable description of the message, display it.
-//   if (description != "")  Serial.println("Mesg Desc.: " + description);
-// } // end decode_results
-
-#define LED     D0        // Led in NodeMCU at pin GPIO16 (D0)
+#define LED     16        // Led in NodeMCU at pin GPIO16 (D0)
 unsigned long previousLedMillis = 0;        // will store last time LED was updated
 unsigned long currentLedMillis = 0; // last time when led was turned on
 bool ledState = 0; // led Status
@@ -166,71 +124,18 @@ uint8_t DetectAlarmZone(uint64_t zone){
 }
 
 // The section of code run only once at start-up.
-void setup() {
-  pinMode(LED, OUTPUT);   // LED pin as output.
-  Serial.begin(BAUD_RATE, SERIAL_8N1, SERIAL_TX_ONLY);
-  digitalWrite(LED, LOW);
-  delay(500);  // Wait a bit for the serial connection to be establised.
-  digitalWrite(LED, HIGH);
-
-#if DECODE_HASH
-  // Ignore messages with less than minimum on or off pulses.
-  irrecv.setUnknownThreshold(MIN_UNKNOWN_SIZE);
-#endif  // DECODE_HASH
-  irrecv.enableIRIn();  // Start the receiver
-}
-
-// The repeating section of the code
+// void Mpx_setup() {
+//   pinMode(LED, OUTPUT);   // LED pin as output.
+//   //Serial.begin(BAUD_RATE, SERIAL_8N1, SERIAL_TX_ONLY);
+//   digitalWrite(LED, LOW);
+//   delay(500);  // Wait a bit for the serial connection to be establised.
+//   digitalWrite(LED, HIGH);
 //
-void loop() {
-  // Check if the IR code has been received.
-  if (irrecv.decode(&results)) {
-    // Display a crude timestamp.
-    uint32_t now = millis();
-    Serial.printf("Timestamp : %06u.%03u\n", now / 1000, now % 1000);
-    if (results.overflow)
-      Serial.printf("WARNING: IR code is too big for buffer (>= %d). "
-                    "This result shouldn't be trusted until this is resolved. "
-                    "Edit & increase CAPTURE_BUFFER_SIZE.\n",
-                    CAPTURE_BUFFER_SIZE);
-    // Display the basic output of what we found.
-    Serial.print(resultToHumanReadableBasic(&results));
-    dumpACInfo(&results);  // Display any extra A/C info if we have it.
-    yield();  // Feed the WDT as the text output can take a while to print.
-
-    // Display the library version the message was captured with.
-    Serial.print("Library   : v");
-    Serial.println(_IRREMOTEESP8266_VERSION_);
-    Serial.println();
-
-    // Output RAW timing info of the result.
-    Serial.println(resultToTimingInfo(&results));
-    yield();  // Feed the WDT (again)
-
-    // Output the results as source code
-    Serial.println(resultToSourceCode(&results));
-    Serial.println("");  // Blank line between entries
-    yield();  // Feed the WDT (again)
-
-    //serialPrintUint64(results.value, HEX) ; // decimal value para  verificar por zona en hexa
-    uint8_t z = DetectAlarmZone(results.value);
-    currentLedMillis = millis();
-
-    // el led se activa con las zonas de movimiento
-    // y se mantiene en on un tiempo fijo por ledInterval
-    // *** transformar lo que sigue en funcion ***
-    if (z != 0) {
-      Serial.print("z "); Serial.println(z);
-      digitalWrite(LED,0); // turn on
-      previousLedMillis = currentLedMillis;
-      ledState = 1;
-    }
-    // if the LED is on and time expires turn it off
-    if (ledState == 1) {
-      if (currentLedMillis - previousLedMillis >= lediInterval) {
-      ledState = 0;
-      digitalWrite(LED,1); // turn off
-      }
-    }
-  }
-} // loop end
+// #if DECODE_HASH
+//   // Ignore messages with less than minimum on or off pulses.
+//   irrecv.setUnknownThreshold(MIN_UNKNOWN_SIZE);
+// #endif  // DECODE_HASH
+// // Use turn on the save buffer feature for more complete capture coverage.
+//   IRrecv irrecv(RECV_PIN, CAPTURE_BUFFER_SIZE, TIMEOUT, true);
+//   irrecv.enableIRIn();  // Start the receiver
+// }

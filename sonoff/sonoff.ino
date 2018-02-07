@@ -2625,6 +2625,10 @@ void GpioInit()
     IrReceiveInit();
   }
 #endif  // USE_IR_RECEIVE
+
+#ifdef USE_MPX
+    Mpx_setup();
+#endif  // USE_IR_RECEIVE
 #endif  // USE_IR_REMOTE
 
   hlw_flg = ((pin[GPIO_HLW_SEL] < 99) && (pin[GPIO_HLW_CF1] < 99) && (pin[GPIO_HLW_CF] < 99));
