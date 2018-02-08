@@ -74,53 +74,14 @@ void IrSendInit(void)
 \*********************************************************************************************/
 // // Display the human readable state of an A/C message if we can.
 #include <IRrecv.h>
+decode_results results;
 
-// void dumpACInfo(decode_results *results) {
-//   String description = "";
-// #if DECODE_DAIKIN
-//   if (results->decode_type == DAIKIN) {
-//     IRDaikinESP ac(0);
-//     ac.setRaw(results->state);
-//     description = ac.toString();
-//   }
-// #endif  // DECODE_DAIKIN
-// #if DECODE_FUJITSU_AC
-//   if (results->decode_type == FUJITSU_AC) {
-//     IRFujitsuAC ac(0);
-//     ac.setRaw(results->state, results->bits / 8);
-//     description = ac.toString();
-//   }
-// #endif  // DECODE_FUJITSU_AC
-// #if DECODE_KELVINATOR
-//   if (results->decode_type == KELVINATOR) {
-//     IRKelvinatorAC ac(0);
-//     ac.setRaw(results->state);
-//     description = ac.toString();
-//   }
-// #endif  // DECODE_KELVINATOR
-// #if DECODE_TOSHIBA_AC
-//   if (results->decode_type == TOSHIBA_AC) {
-//     IRToshibaAC ac(0);
-//     ac.setRaw(results->state);
-//     description = ac.toString();
-//   }
-// #endif  // DECODE_TOSHIBA_AC
-// #if DECODE_MIDEA
-//   if (results->decode_type == MIDEA) {
-//     IRMideaAC ac(0);
-//     ac.setRaw(results->value);  // Midea uses value instead of state.
-//     description = ac.toString();
-//   }
-// #endif  // DECODE_MIDEA
-//   // If we got a human-readable description of the message, display it.
-//   if (description != "")  Serial.println("Mesg Desc.: " + description);
-// } // end dumpACInfo
 
 #define IR_TIME_AVOID_DUPLICATE 500 // Milliseconds
 
 //IRrecv *irrecv = NULL;
 unsigned long ir_lasttime = 0;
-IRrecv irrecv(RECV_PIN, CAPTURE_BUFFER_SIZE, TIMEOUT, true);// an IR led is at GPIO_IRRECV
+IRrecv irrecv(RECV_PIN, CAPTURE_BUFFER_SIZE, TIMEOUT, true);// an IR led is at GPIO_IRRECV ,pin[GPIO_IRRECV]
 
 void IrReceiveInit(void)
 {
@@ -144,15 +105,15 @@ void IrReceiveInit(void)
 
 void IrReceiveCheck()
 {
-  char sirtype[14];  // Max is AIWA_RC_T501
+  char sirtype[40];  // Max is ...MPx is 38
   int8_t iridx = 0;
 
-  decode_results results;
+  //decode_results results;
   // if (irrecv->decode(&results)) {
   if (irrecv.decode(&results)) {
-
-    snprintf_P(log_data, sizeof(log_data), PSTR(D_LOG_IRR "RawLen %d, Bits %d, Value %08X, Decode %d"),
-               results.rawlen, results.bits, results.value, results.decode_type);
+    Serial.println("decode results ");// debug
+    // snprintf_P(log_data, sizeof(log_data), PSTR(D_LOG_IRR "RawLen %d, Bits %d, Value %08X, Decode %d"),
+    //            results.rawlen, results.bits, results.value, results.decode_type);
     AddLog(LOG_LEVEL_DEBUG);
 
     unsigned long now = millis();
@@ -160,11 +121,11 @@ void IrReceiveCheck()
       ir_lasttime = now;
 
       iridx = results.decode_type;
-      if ((iridx < 0) || (iridx > 14)) {
+      if ((iridx < 0) || (iridx > 40)) {
         iridx = 0;
       }
-      snprintf_P(mqtt_data, sizeof(mqtt_data), PSTR("{\"" D_IRRECEIVED "\":{\"" D_IR_PROTOCOL "\":\"%s\",\"" D_IR_BITS "\":%d,\"" D_IR_DATA "\":\"%X\"}}"),
-        GetTextIndexed(sirtype, sizeof(sirtype), iridx, kIrRemoteProtocols), results.bits, results.value);
+      // snprintf_P(mqtt_data, sizeof(mqtt_data), PSTR("{\"" D_IRRECEIVED "\":{\"" D_IR_PROTOCOL "\":\"%s\",\"" D_IR_BITS "\":%d,\"" D_IR_DATA "\":\"%X\"}}"),
+      //   GetTextIndexed(sirtype, sizeof(sirtype), iridx, kIrRemoteProtocols), results.bits, results.value);
         // char* GetTextIndexed(char* destination, size_t destination_size, uint16_t index, const char* haystack)
       MqttPublishPrefixTopic_P(6, PSTR(D_IRRECEIVED));
 #ifdef USE_DOMOTICZ
@@ -172,16 +133,17 @@ void IrReceiveCheck()
       DomoticzSensor(DZ_COUNT, value);                      // Send data as Domoticz Counter value
 #endif                                                      // USE_DOMOTICZ
 
-#ifdef USE_HOME_ASSISTANT
+//#ifdef USE_HOME_ASSISTANT
         // modificar
       uint8_t zona = Mpx_loop(); // modificar en IRrecvMpx.ino
+      Serial.print(GetTextIndexed(sirtype, sizeof(sirtype), iridx, kIrRemoteProtocols));// DEBUG
 
       snprintf_P(mqtt_data, sizeof(mqtt_data), PSTR("{\"" D_IRRECEIVED "\":{\"" D_IR_PROTOCOL "\":\"%s\",\"" D_IR_BITS "\":%d,\"" D_IR_DATA "\":\"%X\"}}"),
         GetTextIndexed(sirtype, sizeof(sirtype), iridx, kIrRemoteProtocols), 1, zona);
         // char* GetTextIndexed(char* destination, size_t destination_size, uint16_t index, const char* haystack)
       MqttPublishPrefixTopic_P(1, PSTR(D_IRRECEIVED));
 
-#endif  // USE_HOME_ASSISTANT
+//#endif  // USE_HOME_ASSISTANT
     }
 
     //irrecv->resume();
@@ -462,8 +424,9 @@ boolean IrSendCommand(char *type, uint16_t index, char *dataBuf, uint16_t data_l
 //
 uint8_t Mpx_loop() {
   // Check if the IR code has been received.
+  Serial.println("mpx Loop "); // debug
   uint8_t z = 0;
-  if (irrecv.decode(&results)) {
+//  if (irrecv.decode(&results)) {
     // Display a crude timestamp.
     uint32_t now = millis();
     Serial.printf("Timestamp : %06u.%03u\n", now / 1000, now % 1000);
@@ -472,15 +435,15 @@ uint8_t Mpx_loop() {
                     "This result shouldn't be trusted until this is resolved. "
                     "Edit & increase CAPTURE_BUFFER_SIZE.\n",
                     CAPTURE_BUFFER_SIZE);
+
     // Display the basic output of what we found.
     Serial.print(resultToHumanReadableBasic(&results));
-    //dumpACInfo(&results);  // Display any extra A/C info if we have it.
     yield();  // Feed the WDT as the text output can take a while to print.
 
     // Display the library version the message was captured with.
-    Serial.print("Library   : v");
-    Serial.println(_IRREMOTEESP8266_VERSION_);
-    Serial.println();
+    //Serial.print("Library   : v");
+    //Serial.println(_IRREMOTEESP8266_VERSION_);
+    //Serial.println();
 
     // Output RAW timing info of the result.
     Serial.println(resultToTimingInfo(&results));
@@ -491,7 +454,9 @@ uint8_t Mpx_loop() {
     Serial.println("");  // Blank line between entries
     yield();  // Feed the WDT (again)
 
-    //serialPrintUint64(results.value, HEX) ; // decimal value para  verificar por zona en hexa
+    Serial.print("results.value: ");// debug
+    serialPrintUint64(results.value, HEX) ; // decimal value para  verificar por zona en hexa
+    Serial.println();// debug
     z = DetectAlarmZone(results.value);
     currentLedMillis = millis();
 
@@ -499,7 +464,7 @@ uint8_t Mpx_loop() {
     // y se mantiene en on un tiempo fijo por ledInterval
     // *** transformar lo que sigue en funcion ***
     if (z != 0) {
-      Serial.print("z "); Serial.println(z);
+      Serial.print("zona "); Serial.println(z);
       digitalWrite(LED,0); // turn on
       previousLedMillis = currentLedMillis;
       ledState = 1;
@@ -511,7 +476,7 @@ uint8_t Mpx_loop() {
       digitalWrite(LED,1); // turn off
       }
     }
-  }
+//  } // end if decode results
   return z; // loop end
 }
 #endif // USE_IR_REMOTE

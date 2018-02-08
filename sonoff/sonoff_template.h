@@ -69,7 +69,7 @@ enum UserSelectablePins {
   GPIO_PWM3_INV,       // RGB   Blue
   GPIO_PWM4_INV,       // RGBW  (Cold) White
   GPIO_PWM5_INV,       // RGBCW Warm White
-  GPIO_IRRECV,         // IR receiver
+  GPIO_IRRECV,         // IR receiver 47
   GPIO_LED1,           // Leds
   GPIO_LED2,
   GPIO_LED3,

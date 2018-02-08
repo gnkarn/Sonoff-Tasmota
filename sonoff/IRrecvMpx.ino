@@ -34,8 +34,8 @@
 #endif  // DECODE_AC
 
 // ==================== start of TUNEABLE PARAMETERS ====================
-// An IR detector/demodulator is connected to GPIO pin 14
-// e.g. D5 on a NodeMCU board.
+// An IR detector/demodulator is connected to GPIO pin 04
+// e.g. D2 on a NodeMCU board.
 #define RECV_PIN 4  //D2 gpio04
 
 // The Serial connection baud rate.
@@ -49,7 +49,7 @@
 // than normal buffer so we can handle Air Conditioner remote codes.
 #define CAPTURE_BUFFER_SIZE 128
 
-decode_results results;  // Somewhere to store the results
+//decode_results results;  // Somewhere to store the results , aca funciona sacando dumpACInfo
 
 // TIMEOUT is the Nr. of milli-Seconds of no-more-data before we consider a
 // message ended.
@@ -102,9 +102,63 @@ decode_results results;  // Somewhere to store the results
 // ==================== end of TUNEABLE PARAMETERS ====================
 
 //
+// pin definitions for Node Mcu numbers are Gpio
+static const uint8_t D0   = 16;
+static const uint8_t D1   = 5;
+static const uint8_t D2   = 4;
+static const uint8_t D3   = 0;
+static const uint8_t D4   = 2;
+static const uint8_t D5   = 14;
+static const uint8_t D6   = 12;
+static const uint8_t D7   = 13;
+static const uint8_t D8   = 15;
+static const uint8_t D9   = 3;
+static const uint8_t D10  = 1;
 
+//decode_results results;  // Somewhere to store the results
 
-#define LED     16        // Led in NodeMCU at pin GPIO16 (D0)
+// void dumpACInfo(decode_results *results) {
+//   String description = "";
+// // #if DECODE_DAIKIN
+// //   if (results->decode_type == DAIKIN) {
+// //     IRDaikinESP ac(0);
+// //     ac.setRaw(results->state);
+// //     description = ac.toString();
+// //   }
+// // #endif  // DECODE_DAIKIN
+// // #if DECODE_FUJITSU_AC
+// //   if (results->decode_type == FUJITSU_AC) {
+// //     IRFujitsuAC ac(0);
+// //     ac.setRaw(results->state, results->bits / 8);
+// //     description = ac.toString();
+// //   }
+// // #endif  // DECODE_FUJITSU_AC
+// // #if DECODE_KELVINATOR
+// //   if (results->decode_type == KELVINATOR) {
+// //     IRKelvinatorAC ac(0);
+// //     ac.setRaw(results->state);
+// //     description = ac.toString();
+// //   }
+// // #endif  // DECODE_KELVINATOR
+// // #if DECODE_TOSHIBA_AC
+// //   if (results->decode_type == TOSHIBA_AC) {
+// //     IRToshibaAC ac(0);
+// //     ac.setRaw(results->state);
+// //     description = ac.toString();
+// //   }
+// // #endif  // DECODE_TOSHIBA_AC
+// // #if DECODE_MIDEA
+// //   if (results->decode_type == MIDEA) {
+// //     IRMideaAC ac(0);
+// //     ac.setRaw(results->value);  // Midea uses value instead of state.
+// //     description = ac.toString();
+// //   }
+// // #endif  // DECODE_MIDEA
+//   // If we got a human-readable description of the message, display it.
+//   if (description != "")  Serial.println("Mesg Desc.: " + description);
+// } // end dumpACInfo
+
+#define LED     D0        // Led in NodeMCU at pin GPIO16 (D0)
 unsigned long previousLedMillis = 0;        // will store last time LED was updated
 unsigned long currentLedMillis = 0; // last time when led was turned on
 bool ledState = 0; // led Status
