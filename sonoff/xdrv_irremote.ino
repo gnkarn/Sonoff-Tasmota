@@ -82,12 +82,9 @@ decode_results results;
 //IRrecv *irrecv = NULL;
 unsigned long ir_lasttime = 0;
 IRrecv irrecv(RECV_PIN, CAPTURE_BUFFER_SIZE, TIMEOUT, true);// an IR led is at GPIO_IRRECV ,pin[GPIO_IRRECV]
-
+// Use turn on the save buffer feature for more complete capture coverage.
 void IrReceiveInit(void)
 {
-  //irrecv = new IRrecv(pin[GPIO_IRRECV]); // an IR led is at GPIO_IRRECV
-  //IRrecv irrecv(RECV_PIN, CAPTURE_BUFFER_SIZE, TIMEOUT, true);// an IR led is at GPIO_IRRECV
-  //irrecv->enableIRIn();                  // Start the receiver
   irrecv.enableIRIn();                  // Start the receiver
 
   // mi codigo
@@ -95,12 +92,7 @@ void IrReceiveInit(void)
   digitalWrite(LED, LOW);
   delay(500);  // Wait a bit for the serial connection to be establised.
   digitalWrite(LED, HIGH);
-
-// Use turn on the save buffer feature for more complete capture coverage.
-  // IRrecv irrecv(RECV_PIN, CAPTURE_BUFFER_SIZE, TIMEOUT, true);
-  // irrecv.enableIRIn();  // Start the receiver
-
-  //  AddLog_P(LOG_LEVEL_DEBUG, PSTR("IrReceive initialized"));
+  AddLog_P(LOG_LEVEL_DEBUG, PSTR("IrReceive initialized"));
 }
 
 void IrReceiveCheck()
@@ -111,7 +103,9 @@ void IrReceiveCheck()
   //decode_results results;
   // if (irrecv->decode(&results)) {
   if (irrecv.decode(&results)) {
-    Serial.println("decode results ");// debug
+    #ifdef DEBUG_GUS
+    Serial.println("decode results ");// debug DEBUG_GUS
+    #endif
     // snprintf_P(log_data, sizeof(log_data), PSTR(D_LOG_IRR "RawLen %d, Bits %d, Value %08X, Decode %d"),
     //            results.rawlen, results.bits, results.value, results.decode_type);
     AddLog(LOG_LEVEL_DEBUG);
@@ -136,8 +130,9 @@ void IrReceiveCheck()
 //#ifdef USE_HOME_ASSISTANT
         // modificar
       uint8_t zona = Mpx_loop(); // modificar en IRrecvMpx.ino
+    #ifdef DEBUG_GUS
       Serial.print(GetTextIndexed(sirtype, sizeof(sirtype), iridx, kIrRemoteProtocols));// DEBUG
-
+    #endif
       snprintf_P(mqtt_data, sizeof(mqtt_data), PSTR("{\"" D_IRRECEIVED "\":{\"" D_IR_PROTOCOL "\":\"%s\",\"" D_IR_BITS "\":%d,\"" D_IR_DATA "\":\"%X\"}}"),
         GetTextIndexed(sirtype, sizeof(sirtype), iridx, kIrRemoteProtocols), 1, zona);
         // char* GetTextIndexed(char* destination, size_t destination_size, uint16_t index, const char* haystack)
@@ -424,7 +419,9 @@ boolean IrSendCommand(char *type, uint16_t index, char *dataBuf, uint16_t data_l
 //
 uint8_t Mpx_loop() {
   // Check if the IR code has been received.
+  #ifdef DEBUG_GUS
   Serial.println("mpx Loop "); // debug
+  #endif
   uint8_t z = 0;
 //  if (irrecv.decode(&results)) {
     // Display a crude timestamp.
@@ -435,7 +432,7 @@ uint8_t Mpx_loop() {
                     "This result shouldn't be trusted until this is resolved. "
                     "Edit & increase CAPTURE_BUFFER_SIZE.\n",
                     CAPTURE_BUFFER_SIZE);
-
+#ifdef DEBUG_GUS
     // Display the basic output of what we found.
     Serial.print(resultToHumanReadableBasic(&results));
     yield();  // Feed the WDT as the text output can take a while to print.
@@ -457,6 +454,7 @@ uint8_t Mpx_loop() {
     Serial.print("results.value: ");// debug
     serialPrintUint64(results.value, HEX) ; // decimal value para  verificar por zona en hexa
     Serial.println();// debug
+#endif
     z = DetectAlarmZone(results.value);
     currentLedMillis = millis();
 

@@ -178,19 +178,5 @@ uint8_t DetectAlarmZone(uint64_t zone){
   return 0 ;
 }
 
-// The section of code run only once at start-up.
-// void Mpx_setup() {
-//   pinMode(LED, OUTPUT);   // LED pin as output.
-//   //Serial.begin(BAUD_RATE, SERIAL_8N1, SERIAL_TX_ONLY);
-//   digitalWrite(LED, LOW);
-//   delay(500);  // Wait a bit for the serial connection to be establised.
-//   digitalWrite(LED, HIGH);
-//
-// #if DECODE_HASH
-//   // Ignore messages with less than minimum on or off pulses.
-//   irrecv.setUnknownThreshold(MIN_UNKNOWN_SIZE);
-// #endif  // DECODE_HASH
-// // Use turn on the save buffer feature for more complete capture coverage.
-//   IRrecv irrecv(RECV_PIN, CAPTURE_BUFFER_SIZE, TIMEOUT, true);
-//   irrecv.enableIRIn();  // Start the receiver
-// }
+// la version preparada para usar como decodificador esta aqui:
+// https://github.com/gnkarn/IRremoteESP8266-mpx/tree/mpx_testing
