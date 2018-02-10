@@ -27,7 +27,9 @@ You should now have a device with 32k more code memory to play with.
 - Sonoff-Tasmota provides all (Sonoff) modules in one file and starts with module Sonoff Basic.
 - Once uploaded select module using the configuration webpage or the commands ```Modules``` and ```Module```.
 - After reboot select config menu again or use commands ```GPIOs``` and ```GPIO``` to change GPIO with desired sensor.
-- This version was modified by GNK, for MPX protocol decode using IR input , on NodeMcu .
+- This version was modified by GNK, for MPX protocol decode using IR input , on ESP12F .
+- it could be setup for NodeMCU , LED change from D4 to D0, MPX input is Gpio 04
+- MPX decode includes only alarm Zones in order to integrate alarm PIR sensors to HomeAssistant
 <img src="https://github.com/arendst/arendst.github.io/blob/master/media/sonoffbasic.jpg" width="250" align="right" />
 
 See [Wiki](https://github.com/arendst/Sonoff-Tasmota/wiki) for more information.<br />
