@@ -43,15 +43,15 @@
 #define SAVE_STATE             1                 // [SetOption0] Save changed power state to Flash (0 = disable, 1 = enable)
 
 // -- Wifi ----------------------------------------
-#define WIFI_IP_ADDRESS        "192.168.0.17"         // [IpAddress1] Set to 0.0.0.0 for using DHCP or IP address
+#define WIFI_IP_ADDRESS        "192.168.0.xx"         // [IpAddress1] Set to 0.0.0.0 for using DHCP or IP address
 #define WIFI_GATEWAY           "192.168.0.1"   // [IpAddress2] If not using DHCP set Gateway IP address
 #define WIFI_SUBNETMASK        "255.255.255.0"   // [IpAddress3] If not using DHCP set Network mask
 #define WIFI_DNS               "192.168.0.1"    // [IpAddress4] If not using DHCP set DNS IP address (might be equal to WIFI_GATEWAY)
 
-#define STA_SSID1              "WIFIgusPb"      // [Ssid1] Wifi SSID
-#define STA_PASS1              "A3263C0AA0"  // [Password1] Wifi password
-#define STA_SSID2              "WIFIgusPb"      // [Ssid2] Optional alternate AP Wifi SSID
-#define STA_PASS2              "A3263C0AA0"  // [Password2] Optional alternate AP Wifi password
+#define STA_SSID1              "WIFIxxxxx"      // [Ssid1] Wifi SSID
+#define STA_PASS1              "xxxxxx"  // [Password1] Wifi password
+#define STA_SSID2              "WIFIxxxxx"      // [Ssid2] Optional alternate AP Wifi SSID
+#define STA_PASS2              "xxxxxxx"  // [Password2] Optional alternate AP Wifi password
 #define WIFI_CONFIG_TOOL       WIFI_WPSCONFIG    // [WifiConfig] Default tool if wifi fails to connect
                                                  //   (WIFI_RESTART, WIFI_SMARTCONFIG, WIFI_MANAGER, WIFI_WPSCONFIG, WIFI_RETRY, WIFI_WAIT)
 
@@ -77,7 +77,7 @@
   #define MQTT_USER            "cloudmqttuser"      // [MqttUser] Mandatory user
   #define MQTT_PASS            "cloudmqttpassword"  // [MqttPassword] Mandatory password
 #else
-  #define MQTT_HOST            "192.168.0.60"         // [MqttHost]
+  #define MQTT_HOST            "192.168.0.xx"         // [MqttHost]
   #define MQTT_PORT            1883              // [MqttPort] MQTT port (10123 on CloudMQTT)
   #define MQTT_USER            "DVES_USER"       // [MqttUser] Optional user
   #define MQTT_PASS            "DVES_PASS"       // [MqttPassword] Optional password

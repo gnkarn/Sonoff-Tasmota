@@ -75,16 +75,16 @@
 #endif  // DECODE_AC
 // Alternatives:
 // #define TIMEOUT 90U  // Suits messages with big gaps like XMP-1 & some aircon
-                        // units, but can accidentally swallow repeated messages
-                        // in the rawData[] output.
+// units, but can accidentally swallow repeated messages
+// in the rawData[] output.
 // #define TIMEOUT MAX_TIMEOUT_MS  // This will set it to our currently allowed
-                                   // maximum. Values this high are problematic
-                                   // because it is roughly the typical boundary
-                                   // where most messages repeat.
-                                   // e.g. It will stop decoding a message and
-                                   //   start sending it to serial at precisely
-                                   //   the time when the next message is likely
-                                   //   to be transmitted, and may miss it.
+// maximum. Values this high are problematic
+// because it is roughly the typical boundary
+// where most messages repeat.
+// e.g. It will stop decoding a message and
+//   start sending it to serial at precisely
+//   the time when the next message is likely
+//   to be transmitted, and may miss it.
 
 // Set the smallest sized "UNKNOWN" message packets we actually care about.
 // This value helps reduce the false-positive detection rate of IR background
@@ -168,14 +168,14 @@ const long lediInterval = 500;           // interval at which to blink (millisec
 
 // if the code corresponds to an alarm zone return zone number
 uint8_t DetectAlarmZone(uint64_t zone){
-  if (zone == 0x9665) return 6; // dormitorio
-  if (zone == 0x9653) return 5; // escritorio
-  if (zone == 0x1540) return 4; // matrim
-  if (zone == 0x9630) return 3; // liv/coc
-  //if (zone == 0x9653) return 2; // patio
-  if (zone == 0x1615) return 1; // entrada
+        if (zone == 0x9665) return 6; // dormitorio
+        if (zone == 0x9653) return 5; // escritorio
+        if (zone == 0x1540) return 4; // matrim
+        if (zone == 0x9630) return 3; // liv/coc
+        //if (zone == 0x9653) return 2; // patio
+        if (zone == 0x1615) return 1; // entrada
 
-  return 0 ;
+        return 0;
 }
 
 // la version preparada para usar como decodificador esta aqui:
