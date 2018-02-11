@@ -170,7 +170,7 @@ const long lediInterval = 500;           // interval at which to blink (millisec
 uint8_t DetectAlarmZone(uint64_t zone){
         if (zone == 0x9665) return 6; // dormitorio
         if (zone == 0x9653) return 5; // escritorio
-        if (zone == 0x1540) return 4; // matrim
+        if (zone == 0x1640) return 4; // matrim
         if (zone == 0x9630) return 3; // liv/coc
         //if (zone == 0x9653) return 2; // patio
         if (zone == 0x1615) return 1; // entrada
