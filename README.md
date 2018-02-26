@@ -1,7 +1,8 @@
 ## Sonoff-Tasmota
 Provide ESP8266 based Sonoff by [iTead Studio](https://www.itead.cc/) and ElectroDragon IoT Relay with Serial, Web and MQTT control allowing 'Over the Air' or OTA firmware updates using Arduino IDE.
 ## Modifications to add mpx protocol decode are concentrated on IR  library,
-- files modified : xdrv_irremote.ino , sonoff.ino,irRecvMPX.ino, IRrecv.cpp, IRrecv.h, IRremoteESP8266.h, decodeMPX.ino 
+- files modified : xdrv_irremote.ino , sonoff.ino,irRecvMPX.ino, IRrecv.cpp, IRrecv.h, IRremoteESP8266.h, decodeMPX.ino
+- MPX is an alarm protocol , devices are connected with twisted  pair wires all in parallel , the IR library has been modified to decode part of the protocol , the interest here was to make use of all the movement(PIR) sensors installed for the alarm system , and use them also for other purposes .
 
 Current version is **5.10.0** - See [sonoff/_releasenotes.ino](https://github.com/arendst/Sonoff-Tasmota/blob/master/sonoff/_releasenotes.ino) for change information.
 
