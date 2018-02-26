@@ -668,6 +668,7 @@ match_result_t IRrecv::matchData(volatile uint16_t *data_ptr,
                                  const uint16_t zeromark,
                                  const uint32_t zerospace,
                                  const uint8_t tolerance) {
+  Serial.println("matchData : "); // debug
   match_result_t result;
   result.success = false;  // Fail by default.
   result.data = 0;
@@ -675,17 +676,26 @@ match_result_t IRrecv::matchData(volatile uint16_t *data_ptr,
        result.used < nbits * 2;
        result.used += 2, data_ptr += 2) {
     // Is the bit a '1'?
-    if (matchMark(*data_ptr, onemark, tolerance) &&
-        matchSpace(*(data_ptr + 1), onespace, tolerance))
+      if (matchMark(*data_ptr, onemark, tolerance) &&
+            matchSpace(*(data_ptr + 1), onespace, tolerance)){
       result.data = (result.data << 1) | 1;
+    #ifdef DEBUG_GUS
+      Serial.print("1"); // debug
+    #endif
+    }
     // or is the bit a '0'?
     else if (matchMark(*data_ptr, zeromark, tolerance) &&
-             matchSpace(*(data_ptr + 1), zerospace, tolerance))
+             matchSpace(*(data_ptr + 1), zerospace, tolerance)){
       result.data <<= 1;
+    #ifdef DEBUG_GUS
+      Serial.print("0"); // debug
+    #endif
+    }
     else
       return result;  // It's neither, so fail.
   }
   result.success = true;
+
   return result;
 }
 

@@ -98,7 +98,7 @@
 // Set lower if you are sure your setup is working, but it doesn't see messages
 // from your device. (e.g. Other IR remotes work.)
 // NOTE: Set this value very high to effectively turn off UNKNOWN detection.
-#define MIN_UNKNOWN_SIZE 12
+#define MIN_UNKNOWN_SIZE 15
 // ==================== end of TUNEABLE PARAMETERS ====================
 
 //
@@ -158,8 +158,11 @@ static const uint8_t D10  = 1;
 //   if (description != "")  Serial.println("Mesg Desc.: " + description);
 // } // end dumpACInfo
 
-//#define LED     D0        // Led in NodeMCU at pin GPIO16 (D0)
-#define LED     D4        // Led in ESP12F at pin GPIO02 (D4)
+// todo - agregar if para las proximas dos lineas
+
+#define LED     D0        // Led in NodeMCU at pin GPIO16 (D0)
+//#define LED     D4        // Led in ESP12F at pin GPIO02 (D4)
+
 unsigned long previousLedMillis = 0;        // will store last time LED was updated
 unsigned long currentLedMillis = 0; // last time when led was turned on
 bool ledState = 0; // led Status
@@ -174,6 +177,7 @@ uint8_t DetectAlarmZone(uint64_t zone){
         if (zone == 0x9630) return 3; // liv/coc
         //if (zone == 0x9653) return 2; // patio
         if (zone == 0x1615) return 1; // entrada
+        if (zone == 0x17F5) return 31; // despensa
 
         return 0;
 }

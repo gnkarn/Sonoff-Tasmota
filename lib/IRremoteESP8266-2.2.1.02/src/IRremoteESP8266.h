@@ -59,31 +59,31 @@
 #define SEND_RAW             true
 
 #define DECODE_NEC           false
-#define SEND_NEC             true
+#define SEND_NEC             false
 
 #define DECODE_SHERWOOD      false  // Doesn't exist. Actually is DECODE_NEC
 #define SEND_SHERWOOD        false
 
 #define DECODE_RC5           false
-#define SEND_RC5             true
+#define SEND_RC5             false
 
 #define DECODE_RC6           false
-#define SEND_RC6             true
+#define SEND_RC6             false
 
 #define DECODE_RCMM          false
 #define SEND_RCMM            false
 
 #define DECODE_SONY          false
-#define SEND_SONY            true
+#define SEND_SONY            false
 
 #define DECODE_PANASONIC     false
-#define SEND_PANASONIC       true
+#define SEND_PANASONIC       false
 
 #define DECODE_JVC           false
-#define SEND_JVC             true
+#define SEND_JVC             false
 
 #define DECODE_SAMSUNG       false
-#define SEND_SAMSUNG         true
+#define SEND_SAMSUNG         false
 
 #define DECODE_WHYNTER       false
 #define SEND_WHYNTER         false
@@ -101,7 +101,7 @@
 #define SEND_MITSUBISHI      false
 
 #define DECODE_DISH          false
-#define SEND_DISH            true
+#define SEND_DISH            false
 
 #define DECODE_SHARP         false
 #define SEND_SHARP           false
@@ -242,11 +242,11 @@ enum decode_type_t {
 #define MITSUBISHI_MIN_REPEAT        1U  // Based on marcosamarinho's code.
 #define MITSUBISHI_AC_STATE_LENGTH  18U
 #define MITSUBISHI_AC_MIN_REPEAT     1U
-#define FUJITSU_AC_MIN_REPEAT        0U
-#define FUJITSU_AC_STATE_LENGTH     16U
-#define FUJITSU_AC_STATE_LENGTH_SHORT 7U
-#define FUJITSU_AC_BITS             (FUJITSU_AC_STATE_LENGTH * 8)
-#define FUJITSU_AC_MIN_BITS         ((FUJITSU_AC_STATE_LENGTH_SHORT - 1) * 8)
+// #define FUJITSU_AC_MIN_REPEAT        0U
+// #define FUJITSU_AC_STATE_LENGTH     16U
+// #define FUJITSU_AC_STATE_LENGTH_SHORT 7U
+// #define FUJITSU_AC_BITS             (FUJITSU_AC_STATE_LENGTH * 8)
+// #define FUJITSU_AC_MIN_BITS         ((FUJITSU_AC_STATE_LENGTH_SHORT - 1) * 8)
 #define NEC_BITS                    32U
 #define PANASONIC_BITS              48U
 #define PANASONIC_MANUFACTURER   0x4004ULL

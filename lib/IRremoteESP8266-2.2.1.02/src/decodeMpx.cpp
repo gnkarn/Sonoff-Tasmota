@@ -1,6 +1,6 @@
 // Copyright 2009 Ken Shirriff
 // Copyright 2017 David Conran
-// based on Nikai , modified for MPx
+// based on Nikai , modified for MPx by GNK
 #include <algorithm>
 #include "IRrecv.h"
 #include "IRsend.h"
@@ -74,7 +74,7 @@ bool IRrecv::decodeMPX(decode_results *results, uint16_t nbits, bool strict) {
         uint16_t offset = 1;
 
         // Header
-
+// para MPX no uso el calculo de Mticks y sticks , es fijo MPX_TICK
 //   if (!matchMark(results->rawbuf[offset], MPX_HDR_MARK)) return false;
 // Calculate how long the common tick time is based on the header mark.
 //  uint32_t m_tick = results->rawbuf[offset++] * RAWTICK / MPX_HDR_MARK_TICKS; // sacado para debug

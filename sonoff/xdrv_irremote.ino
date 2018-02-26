@@ -104,24 +104,27 @@ void IrReceiveCheck()
         // if (irrecv->decode(&results)) {
         if (irrecv.decode(&results)) {
     #ifdef DEBUG_GUS
-                Serial.println("decode results ");// debug DEBUG_GUS
+                Serial.println("decoding results ");// debug DEBUG_GUS
     #endif
                 // snprintf_P(log_data, sizeof(log_data), PSTR(D_LOG_IRR "RawLen %d, Bits %d, Value %08X, Decode %d"),
                 //            results.rawlen, results.bits, results.value, results.decode_type);
                 AddLog(LOG_LEVEL_DEBUG);
 
                 unsigned long now = millis();
-                if ((now - ir_lasttime > IR_TIME_AVOID_DUPLICATE) && (UNKNOWN != results.decode_type) && (results.bits > 0)) {
+                //if ((now - ir_lasttime > IR_TIME_AVOID_DUPLICATE) && (UNKNOWN != results.decode_type) && (results.bits > 0)) {
+// ***                if ((UNKNOWN != results.decode_type) && (results.bits > 0)) {
                         ir_lasttime = now;
 
                         iridx = results.decode_type;
+                        Serial.print("iridx ");Serial.println(iridx); // debug
+
                         if ((iridx < 0) || (iridx > 40)) {
                                 iridx = 0;
                         }
                         // snprintf_P(mqtt_data, sizeof(mqtt_data), PSTR("{\"" D_IRRECEIVED "\":{\"" D_IR_PROTOCOL "\":\"%s\",\"" D_IR_BITS "\":%d,\"" D_IR_DATA "\":\"%X\"}}"),
                         //   GetTextIndexed(sirtype, sizeof(sirtype), iridx, kIrRemoteProtocols), results.bits, results.value);
                         // char* GetTextIndexed(char* destination, size_t destination_size, uint16_t index, const char* haystack)
-                        MqttPublishPrefixTopic_P(6, PSTR(D_IRRECEIVED));
+                        //      MqttPublishPrefixTopic_P(6, PSTR(D_IRRECEIVED));
 #ifdef USE_DOMOTICZ
                         unsigned long value = results.value | (iridx << 28); // [Protocol:4, Data:28]
                         DomoticzSensor(DZ_COUNT, value);    // Send data as Domoticz Counter value
@@ -139,7 +142,8 @@ void IrReceiveCheck()
                         MqttPublishPrefixTopic_P(1, PSTR(D_IRRECEIVED));
 
 //#endif  // USE_HOME_ASSISTANT
-                }
+// ***                }
+
 
                 //irrecv->resume();
                 irrecv.resume();
@@ -335,22 +339,23 @@ boolean IrSendCommand(char *type, uint16_t index, char *dataBuf, uint16_t data_l
                                 if (protocol && bits && data) {
                                         int protocol_code = GetCommandCode(protocol_text, sizeof(protocol_text), protocol, kIrRemoteProtocols);
                                         switch (protocol_code) {
-                                        case NEC:
-                                                irsend->sendNEC(data, bits); break;
-                                        case SONY:
-                                                irsend->sendSony(data, bits); break;
-                                        case RC5:
-                                                irsend->sendRC5(data, bits); break;
-                                        case RC6:
-                                                irsend->sendRC6(data, bits); break;
-                                        case DISH:
-                                                irsend->sendDISH(data, bits); break;
-                                        case JVC:
-                                                irsend->sendJVC(data, bits, 1); break;
-                                        case SAMSUNG:
-                                                irsend->sendSAMSUNG(data, bits); break;
-                                        case PANASONIC:
-                                                irsend->sendPanasonic(bits, data); break;
+                                          // comentado para evitar error: 'class IRsend' has no member named 'sendNEC'
+                                        // case NEC:
+                                        //         irsend->sendNEC(data, bits); break;
+                                        // case SONY:
+                                        //         irsend->sendSony(data, bits); break;
+                                        // case RC5:
+                                        //         irsend->sendRC5(data, bits); break;
+                                        // case RC6:
+                                        //         irsend->sendRC6(data, bits); break;
+                                        // case DISH:
+                                        //         irsend->sendDISH(data, bits); break;
+                                        // case JVC:
+                                        //         irsend->sendJVC(data, bits, 1); break;
+                                        // case SAMSUNG:
+                                        //         irsend->sendSAMSUNG(data, bits); break;
+                                        // case PANASONIC:
+                                        //         irsend->sendPanasonic(bits, data); break;
                                         default:
                                                 snprintf_P(mqtt_data, sizeof(mqtt_data), PSTR("{\"" D_CMND_IRSEND "\":\"" D_PROTOCOL_NOT_SUPPORTED "\"}"));
                                         }
@@ -426,7 +431,7 @@ uint8_t Mpx_loop() {
 //  if (irrecv.decode(&results)) {
         // Display a crude timestamp.
         uint32_t now = millis();
-        Serial.printf("Timestamp : %06u.%03u\n", now / 1000, now % 1000);
+        // Serial.printf("Timestamp : %06u.%03u\n", now / 1000, now % 1000);
         if (results.overflow)
                 Serial.printf("WARNING: IR code is too big for buffer (>= %d). "
                               "This result shouldn't be trusted until this is resolved. "
