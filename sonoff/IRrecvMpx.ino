@@ -160,8 +160,8 @@ static const uint8_t D10  = 1;
 
 // todo - agregar if para las proximas dos lineas
 
-#define LED     D0        // Led in NodeMCU at pin GPIO16 (D0)
-//#define LED     D4        // Led in ESP12F at pin GPIO02 (D4)
+//#define LED     D0        // Led in NodeMCU at pin GPIO16 (D0)
+#define LED     D4        // Led in ESP12F at pin GPIO02 (D4)
 
 unsigned long previousLedMillis = 0;        // will store last time LED was updated
 unsigned long currentLedMillis = 0; // last time when led was turned on

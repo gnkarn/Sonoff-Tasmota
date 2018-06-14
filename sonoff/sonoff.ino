@@ -2627,7 +2627,7 @@ void GpioInit()
 #endif  // USE_IR_RECEIVE
 
 #ifdef USE_MPX
-    Mpx_setup();
+    Mpx_setup(); // no se usa
 #endif  // USE_IR_RECEIVE
 #endif  // USE_IR_REMOTE
 
