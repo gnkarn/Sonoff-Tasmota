@@ -132,12 +132,14 @@ void IrReceiveCheck()
 
 //#ifdef USE_HOME_ASSISTANT
                         // modificar
+                        bool activada =0;
                         uint8_t zona = Mpx_loop(); // modificar en IRrecvMpx.ino
+
+
     #ifdef DEBUG_GUS
                         Serial.print(GetTextIndexed(sirtype, sizeof(sirtype), iridx, kIrRemoteProtocols));// DEBUG
     #endif
-                        snprintf_P(mqtt_data, sizeof(mqtt_data), PSTR("{\"" D_IRRECEIVED "\":{\"" D_IR_PROTOCOL "\":\"%s\",\"" D_IR_BITS "\":%d,\"" D_IR_DATA "\":\"%X\"}}"),
-                                   GetTextIndexed(sirtype, sizeof(sirtype), iridx, kIrRemoteProtocols), 1, zona);
+                        snprintf_P(mqtt_data, sizeof(mqtt_data), PSTR("{\"" D_IRRECEIVED "\":{\"" D_IR_PROTOCOL "\":\"%s\",\"" D_IR_BITS "\":%d,\"" D_IR_DATA "\":\"%X\"}}"),GetTextIndexed(sirtype, sizeof(sirtype), iridx, kIrRemoteProtocols), 1, zona);
                         // char* GetTextIndexed(char* destination, size_t destination_size, uint16_t index, const char* haystack)
                         MqttPublishPrefixTopic_P(1, PSTR(D_IRRECEIVED));
 

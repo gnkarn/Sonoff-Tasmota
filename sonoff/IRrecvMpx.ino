@@ -175,9 +175,23 @@ uint8_t DetectAlarmZone(uint64_t zone){
         if (zone == 0x9653) return 5; // escritorio
         if (zone == 0x1640) return 4; // matrim
         if (zone == 0x9630) return 3; // liv/coc
-        //if (zone == 0x9653) return 2; // patio
         if (zone == 0x1615) return 1; // entrada
         if (zone == 0x17F5) return 31; // despensa
+        if ((zone == 0x9028) or (zone == 0xB045) or (zone == 0x942F)) return 2 ;// patio , relacionado B045, y 942F ( barrera ok)
+        // Estado de alarma
+        if (zone == 0x49C1) return 101 ;// std status armada (0x65)
+        if (zone == 0xC92B) return 100 ;// std status desarmada ( 0x64)
+        if (zone == 0xC9E4) return 102 ;// cmd recibe comando armado (0x66)
+        if (zone == 0x490E) return 103 ;// cmd recibe comando desarmado (0x67)
+
+        if (zone == 0x4A3E) return 104 ;// std baterial normally
+        if (zone == 0x4A08) return 105 ;// sta falla de alimentacion
+
+        if (zone == 0x6BB3) return 106 ;// sta hubo disparo de Alarma
+        if (zone == 0x398B) return 107 ;// sta disparo de alarma sin reconocer
+
+        if ((zone == 0x40B0) or (zone == 0xC120) or (zone == 0x4BE8)) return 108 ;// sta modo estoy
+        if ((zone == 0x41A9) or (zone == 0xCBAE)) return 109; // or (zone == 0x42FA) return 108 ;// sta modo me voy
 
         return 0;
 }
