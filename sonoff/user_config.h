@@ -19,7 +19,8 @@
 
 #ifndef _USER_CONFIG_H_
 #define _USER_CONFIG_H_
-#define DEBUG_GUS 1 // 1 to enable debug serial output
+//#define DEBUG_GUS 1 // 1 to enable debug serial output
+
 /*********************************************************************************************\
  * ATTENTION: Changes to most PARAMETER defines will only override flash settings if you change
  *            define CFG_HOLDER.
@@ -38,7 +39,7 @@
 #define PROJECT                "MPX"          // PROJECT is used as the default topic delimiter and OTA file name
                                                  //   As an IDE restriction it needs to be the same as the main .ino file
 
-#define CFG_HOLDER             0x2016121A        // [Reset 1] Change this value to load following default configuration parameters
+#define CFG_HOLDER             0x2016121B        // [Reset 1] Change this value to load following default configuration parameters
 #define SAVE_DATA              1                 // [SaveData] Save changed parameters to Flash (0 = disable, 1 - 3600 seconds)
 #define SAVE_STATE             1                 // [SetOption0] Save changed power state to Flash (0 = disable, 1 = enable)
 
@@ -48,8 +49,8 @@
 #define WIFI_SUBNETMASK        "255.255.255.0"   // [IpAddress3] If not using DHCP set Network mask
 #define WIFI_DNS               "192.168.0.1"    // [IpAddress4] If not using DHCP set DNS IP address (might be equal to WIFI_GATEWAY)
 
-#define STA_SSID1              "WIFIxxxxb"      // [Ssid1] Wifi SSID
-#define STA_PASS1              "xxx"  // [Password1] Wifi password
+#define STA_SSID1              "WIFIxx"      // [Ssid1] Wifi SSID
+#define STA_PASS1              "xx"  // [Password1] Wifi password
 #define STA_SSID2              ""      // [Ssid2] Optional alternate AP Wifi SSID
 #define STA_PASS2              ""  // [Password2] Optional alternate AP Wifi password
 #define WIFI_CONFIG_TOOL       WIFI_WPSCONFIG    // [WifiConfig] Default tool if wifi fails to connect
@@ -77,7 +78,7 @@
   #define MQTT_USER            "cloudmqttuser"      // [MqttUser] Mandatory user
   #define MQTT_PASS            "cloudmqttpassword"  // [MqttPassword] Mandatory password
 #else
-  #define MQTT_HOST            "192.168.0.60"         // [MqttHost]
+  #define MQTT_HOST            "192.168.0.xx"         // [MqttHost]
   #define MQTT_PORT            1883              // [MqttPort] MQTT port (10123 on CloudMQTT)
   #define MQTT_USER            "DVES_USER"       // [MqttUser] Optional user
   #define MQTT_PASS            "DVES_PASS"       // [MqttPassword] Optional password

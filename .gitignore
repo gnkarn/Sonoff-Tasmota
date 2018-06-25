@@ -7,3 +7,5 @@
 .vscode/launch.json
 user_config.h
 .vscode
+user_config(mpx).h
+firmware.bin
